@@ -1,0 +1,151 @@
+# Sleep Science Configuration
+# Scientific benchmarks and metrics based on peer-reviewed research
+
+[sources]
+    [[sources.primary]]
+    name = "National Sleep Foundation"
+    abbreviation = "NSF"
+    url = "https://www.sleepfoundation.org"
+    year = 2025
+
+    [[sources.primary]]
+    name = "American Academy of Sleep Medicine"
+    abbreviation = "AASM"
+    url = "https://aasm.org"
+    year = 2025
+
+    [[sources.primary]]
+    name = "Huberman Lab"
+    abbreviation = "HL"
+    url = "https://hubermanlab.com"
+    year = 2025
+
+[metrics.sleep_duration]
+    optimal_min_hours = 7.0
+    optimal_max_hours = 9.0
+    good_threshold_hours = 6.0
+    unit = "hours"
+    source = "NSF"
+    citation = "Hirshkowitz et al., Sleep Health, 2015"
+    description = "Total sleep duration per night for adults (18-64 years)"
+
+[metrics.rem_sleep]
+    target_percentage_min = 20.0
+    target_percentage_max = 25.0
+    optimal_percentage = 22.5
+    unit = "percentage"
+    source = "AASM"
+    citation = "Berry et al., AASM Scoring Manual, 2020"
+    description = "REM sleep should comprise 20-25% of total sleep time"
+
+[metrics.deep_sleep]
+    target_percentage_min = 13.0
+    target_percentage_max = 23.0
+    optimal_percentage = 18.0
+    unit = "percentage"
+    source = "AASM"
+    citation = "Ohayon et al., Sleep Medicine, 2004"
+    description = "Deep sleep (N3/slow-wave sleep) percentage of total sleep"
+
+[metrics.light_sleep]
+    target_percentage_min = 45.0
+    target_percentage_max = 55.0
+    optimal_percentage = 50.0
+    unit = "percentage"
+    source = "AASM"
+    citation = "Ohayon et al., Sleep Medicine, 2004"
+    description = "Light sleep (N1+N2/Core sleep) percentage of total sleep"
+
+[metrics.sleep_efficiency]
+    optimal_threshold = 90.0
+    good_threshold = 85.0
+    fair_threshold = 75.0
+    unit = "percentage"
+    source = "NSF"
+    citation = "Ohayon et al., Sleep Medicine, 2017"
+    description = "Time asleep divided by time in bed, expressed as percentage"
+
+[metrics.sleep_latency]
+    optimal_max_minutes = 15.0
+    good_max_minutes = 30.0
+    unit = "minutes"
+    source = "AASM"
+    citation = "Ohayon et al., Sleep, 2017"
+    description = "Time taken to fall asleep after lights out"
+
+[metrics.wake_after_sleep_onset]
+    optimal_max_minutes = 20.0
+    good_max_minutes = 30.0
+    unit = "minutes"
+    source = "AASM"
+    citation = "Ohayon et al., Sleep, 2017"
+    description = "Total time spent awake after initially falling asleep"
+
+[metrics.sleep_onset_time]
+    optimal_start_hour = 22.0
+    optimal_end_hour = 23.5
+    unit = "hours"
+    source = "HL"
+    citation = "Huberman Lab Podcast, Sleep Optimization Toolkit"
+    description = "Optimal sleep onset time aligned with circadian rhythm (10 PM - 11:30 PM)"
+
+[metrics.wake_time]
+    optimal_start_hour = 6.0
+    optimal_end_hour = 7.5
+    unit = "hours"
+    source = "HL"
+    citation = "Huberman Lab Podcast, Sleep Optimization Toolkit"
+    description = "Optimal wake time for circadian alignment (6 AM - 7:30 AM)"
+
+[metrics.sleep_consistency]
+    optimal_variability_minutes = 30.0
+    good_variability_minutes = 60.0
+    unit = "minutes"
+    source = "NSF"
+    citation = "Phillips et al., Sleep Health, 2017"
+    description = "Standard deviation of sleep/wake times across nights (lower is better)"
+
+[metrics.sleep_midpoint]
+    optimal_hour = 3.0
+    early_chronotype_hour = 2.0
+    late_chronotype_hour = 4.0
+    unit = "hours"
+    source = "HL"
+    citation = "Roenneberg et al., Current Biology, 2007"
+    description = "Midpoint of sleep period, indicates chronotype (3 AM is average)"
+
+# Huberman-specific circadian optimization metrics
+[huberman_protocols]
+    [[huberman_protocols.morning_light]]
+    metric = "time_to_sunlight"
+    optimal_max_minutes = 30.0
+    description = "Get bright light (ideally sunlight) within 30 minutes of waking"
+    source = "HL"
+
+    [[huberman_protocols.temperature_minimum]]
+    metric = "estimated_temp_minimum"
+    description = "Occurs ~2 hours before typical wake time, critical for circadian timing"
+    source = "HL"
+
+    [[huberman_protocols.consistency]]
+    metric = "sleep_wake_regularity"
+    optimal_variability_minutes = 30.0
+    description = "Keep sleep and wake times consistent within 30-60 minutes"
+    source = "HL"
+
+# Age-specific adjustments (future expansion)
+[age_groups]
+    [[age_groups.young_adult]]
+    age_range = [18, 25]
+    sleep_duration_min = 7.0
+    sleep_duration_max = 9.0
+
+    [[age_groups.adult]]
+    age_range = [26, 64]
+    sleep_duration_min = 7.0
+    sleep_duration_max = 9.0
+
+    [[age_groups.older_adult]]
+    age_range = [65, 120]
+    sleep_duration_min = 7.0
+    sleep_duration_max = 8.0
