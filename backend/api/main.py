@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from backend.api.routes import auth, ingest, sleep
+from backend.api.routes import auth, ingest, insights, sleep
 
 app = FastAPI(
     title="Apple Health Analysis Engine",
@@ -47,6 +47,7 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router)
 app.include_router(ingest.router)
+app.include_router(insights.router)
 app.include_router(sleep.router)
 
 

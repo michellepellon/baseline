@@ -80,6 +80,7 @@
 	}
 
 	let navItems = [
+		{ name: 'Insights', path: '/insights' },
 		{ name: 'Sleep', path: '/sleep' },
 		{ name: 'Data', path: '/data' },
 		{ name: 'Science', path: '/methodology' }
@@ -95,6 +96,31 @@
 
 		<nav class="nav">
 			<ul class="nav-list">
+				<li>
+					<a
+						href="/insights"
+						class="nav-item"
+						class:active={$page.url.pathname === '/insights'}
+					>
+						<span class="nav-icon">
+							<svg
+								width="20"
+								height="20"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							>
+								<path d="M12 2L2 7l10 5 10-5-10-5z" />
+								<path d="M2 17l10 5 10-5" />
+								<path d="M2 12l10 5 10-5" />
+							</svg>
+						</span>
+						<span class="nav-label">Insights</span>
+					</a>
+				</li>
 				<li>
 					<a
 						href="/sleep"
@@ -333,6 +359,37 @@
 		align-items: center;
 		gap: 1.5rem;
 		margin-left: auto;
+	}
+
+	/* Notification Bell (injected by Insights page) */
+	:global(.notification-bell) {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #666;
+	}
+
+	:global(.notification-bell svg) {
+		display: block;
+	}
+
+	:global(.notification-badge) {
+		position: absolute;
+		top: -4px;
+		right: -4px;
+		background: #313244;
+		color: white;
+		font-size: 0.625rem;
+		font-weight: 500;
+		min-width: 16px;
+		height: 16px;
+		border-radius: 8px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0 4px;
+		font-variant-numeric: tabular-nums;
 	}
 
 	/* User Menu */

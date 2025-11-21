@@ -168,24 +168,46 @@ class SleepDatabase:
                         THEN duration_minutes ELSE 0 END) as awake_min
                 FROM sleep_records
                 GROUP BY date
+            ),
+            stage_totals_with_sum AS (
+                SELECT
+                    *,
+                    (core_min + deep_min + rem_min) as total_asleep_min
+                FROM stage_totals
             )
             UPDATE sleep_nightly_summary
             SET
-                asleep_core_minutes = stage_totals.core_min,
-                asleep_deep_minutes = stage_totals.deep_min,
-                asleep_rem_minutes = stage_totals.rem_min,
-                awake_minutes = stage_totals.awake_min,
-                asleep_core_pct = (stage_totals.core_min::DOUBLE
-                    / total_sleep_minutes * 100),
-                asleep_deep_pct = (stage_totals.deep_min::DOUBLE
-                    / total_sleep_minutes * 100),
-                asleep_rem_pct = (stage_totals.rem_min::DOUBLE
-                    / total_sleep_minutes * 100),
-                awake_pct = (stage_totals.awake_min::DOUBLE
-                    / time_in_bed_minutes * 100),
+                asleep_core_minutes = stage_totals_with_sum.core_min,
+                asleep_deep_minutes = stage_totals_with_sum.deep_min,
+                asleep_rem_minutes = stage_totals_with_sum.rem_min,
+                awake_minutes = stage_totals_with_sum.awake_min,
+                asleep_core_pct = CASE
+                    WHEN stage_totals_with_sum.total_asleep_min > 0
+                    THEN (stage_totals_with_sum.core_min::DOUBLE
+                        / stage_totals_with_sum.total_asleep_min * 100)
+                    ELSE 0
+                END,
+                asleep_deep_pct = CASE
+                    WHEN stage_totals_with_sum.total_asleep_min > 0
+                    THEN (stage_totals_with_sum.deep_min::DOUBLE
+                        / stage_totals_with_sum.total_asleep_min * 100)
+                    ELSE 0
+                END,
+                asleep_rem_pct = CASE
+                    WHEN stage_totals_with_sum.total_asleep_min > 0
+                    THEN (stage_totals_with_sum.rem_min::DOUBLE
+                        / stage_totals_with_sum.total_asleep_min * 100)
+                    ELSE 0
+                END,
+                awake_pct = CASE
+                    WHEN time_in_bed_minutes > 0
+                    THEN (stage_totals_with_sum.awake_min::DOUBLE
+                        / time_in_bed_minutes * 100)
+                    ELSE 0
+                END,
                 updated_at = now()
-            FROM stage_totals
-            WHERE sleep_nightly_summary.date = stage_totals.date
+            FROM stage_totals_with_sum
+            WHERE sleep_nightly_summary.date = stage_totals_with_sum.date
             """
         )
 

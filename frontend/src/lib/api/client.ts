@@ -214,3 +214,38 @@ export async function ingestHealthKitData(
 
 	return await response.json();
 }
+
+/**
+ * Generate health insights using LLM.
+ */
+export async function generateInsights(
+	days: number = 7,
+	forceRegenerate: boolean = false
+): Promise<{
+	insights: {
+		overview: string;
+		recommendations: string[];
+		patterns: string;
+	};
+	stats: {
+		average_sleep_hours: number;
+		average_efficiency: number;
+		nights_analyzed: number;
+		date_range: {
+			start: string;
+			end: string;
+		};
+		average_rem_pct?: number;
+		average_deep_pct?: number;
+	};
+	generated_at: string;
+	from_cache: boolean;
+}> {
+	const params = new URLSearchParams();
+	params.append('days', days.toString());
+	if (forceRegenerate) {
+		params.append('force_regenerate', 'true');
+	}
+
+	return apiFetch(`/api/insights/generate?${params.toString()}`);
+}

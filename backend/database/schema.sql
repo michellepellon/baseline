@@ -7,6 +7,7 @@ CREATE SEQUENCE IF NOT EXISTS seq_nightly_summary START 1;
 CREATE SEQUENCE IF NOT EXISTS seq_stage_events START 1;
 CREATE SEQUENCE IF NOT EXISTS seq_benchmarks START 1;
 CREATE SEQUENCE IF NOT EXISTS seq_metrics START 1;
+CREATE SEQUENCE IF NOT EXISTS seq_insights_cache START 1;
 
 -- Users table: stores user authentication and profile data
 CREATE TABLE IF NOT EXISTS users (
@@ -108,6 +109,16 @@ CREATE TABLE IF NOT EXISTS sleep_metrics (
     FOREIGN KEY (date) REFERENCES sleep_nightly_summary(date)
 );
 
+-- Insights cache table: stores generated insights to avoid regeneration
+CREATE TABLE IF NOT EXISTS insights_cache (
+    id INTEGER PRIMARY KEY DEFAULT nextval('seq_insights_cache'),
+    days_analyzed INTEGER NOT NULL,
+    insights_text TEXT NOT NULL,
+    stats JSON NOT NULL,
+    generated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_sleep_records_date ON sleep_records(date);
@@ -115,3 +126,5 @@ CREATE INDEX IF NOT EXISTS idx_sleep_records_stage ON sleep_records(sleep_stage)
 CREATE INDEX IF NOT EXISTS idx_sleep_stage_events_date ON sleep_stage_events(date);
 CREATE INDEX IF NOT EXISTS idx_sleep_metrics_date ON sleep_metrics(date);
 CREATE INDEX IF NOT EXISTS idx_sleep_metrics_name ON sleep_metrics(metric_name);
+CREATE INDEX IF NOT EXISTS idx_insights_cache_days ON insights_cache(days_analyzed);
+CREATE INDEX IF NOT EXISTS idx_insights_cache_generated ON insights_cache(generated_at);
