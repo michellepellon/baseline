@@ -72,74 +72,75 @@
 
 <style>
 	.data-page {
-		font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
-		color: #333;
+		font-family: var(--font-family-base);
+		color: var(--color-text-primary);
 	}
 
 	h1 {
-		font-size: 2rem;
-		font-weight: 400;
-		margin: 0 0 2rem 0;
+		font-size: var(--text-2xl);
+		font-weight: var(--font-weight-normal);
+		margin: 0 0 var(--space-8) 0;
 		letter-spacing: -0.01em;
-		color: #000;
+		color: var(--color-text-primary);
 	}
 
 	h2 {
-		font-size: 1.25rem;
-		font-weight: 400;
-		margin: 0 0 1rem 0;
+		font-size: var(--text-lg);
+		font-weight: var(--font-weight-normal);
+		margin: 0 0 var(--space-4) 0;
 		letter-spacing: -0.01em;
-		color: #000;
+		color: var(--color-text-primary);
 	}
 
 	h3 {
-		font-size: 1.1rem;
-		font-weight: 400;
-		margin: 0 0 0.75rem 0;
-		color: #000;
+		font-size: var(--text-base);
+		font-weight: var(--font-weight-medium);
+		margin: 0 0 var(--space-3) 0;
+		color: var(--color-text-primary);
 	}
 
 	.description {
-		margin: 0 0 1.5rem 0;
+		margin: 0 0 var(--space-6) 0;
 		line-height: 1.6;
-		color: #666;
+		color: var(--color-text-secondary);
+		font-size: var(--text-base);
 	}
 
 	/* Import Section */
 	.import-section {
-		background: #ffffff;
-		border: 1px solid #e5e5e5;
-		border-radius: 6px;
-		padding: 1.5rem;
-		margin-bottom: 2rem;
+		background: var(--color-bg-primary);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		padding: var(--space-6);
+		margin-bottom: var(--space-6);
 	}
 
 	.upload-area {
-		margin: 2rem 0;
+		margin: var(--space-6) 0;
 	}
 
 	.upload-success {
-		background: #f0f9f4;
-		border: 1px solid #4caf50;
-		border-radius: 6px;
-		padding: 1.5rem;
-		margin-top: 2rem;
+		background: var(--color-success-bg);
+		border: 1px solid var(--color-success-border);
+		border-radius: var(--radius-md);
+		padding: var(--space-6);
+		margin-top: var(--space-6);
 	}
 
 	.upload-success h3 {
-		color: #2e7d32;
-		margin-bottom: 1rem;
+		color: var(--color-success);
+		margin-bottom: var(--space-4);
 	}
 
 	.result-details {
-		margin: 1rem 0;
+		margin: var(--space-4) 0;
 	}
 
 	.detail-row {
 		display: flex;
 		justify-content: space-between;
-		padding: 0.5rem 0;
-		border-bottom: 1px solid #e0f2e9;
+		padding: var(--space-3) 0;
+		border-bottom: 1px solid var(--color-success-border);
 	}
 
 	.detail-row:last-child {
@@ -149,27 +150,29 @@
 	.detail-row .label {
 		font-variant: small-caps;
 		letter-spacing: 0.05em;
-		color: #666;
+		color: var(--color-text-secondary);
+		font-size: var(--text-sm);
 	}
 
 	.detail-row .value {
-		font-weight: 500;
-		color: #000;
+		font-weight: var(--font-weight-medium);
+		color: var(--color-text-primary);
+		font-size: var(--text-sm);
 	}
 
 	.redirect-notice {
-		margin-top: 1rem;
+		margin-top: var(--space-4);
 		font-style: italic;
-		color: #666;
-		font-size: 0.875rem;
+		color: var(--color-text-secondary);
+		font-size: var(--text-sm);
 	}
 
 	/* Info Section */
 	.info-section {
-		background: #fafafa;
-		border: 1px solid #e5e5e5;
-		border-radius: 6px;
-		padding: 1.5rem;
+		background: var(--color-bg-secondary);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		padding: var(--space-6);
 	}
 
 	.info-content {
@@ -177,25 +180,12 @@
 	}
 
 	ol {
-		margin: 1rem 0;
-		padding-left: 1.75rem;
+		margin: var(--space-4) 0;
+		padding-left: var(--space-7);
 	}
 
 	ol li {
-		margin-bottom: 0.5rem;
-	}
-
-	.note {
-		margin-top: 1.5rem;
-		padding: 1rem;
-		background: #fff3cd;
-		border: 1px solid #ffc107;
-		border-radius: 4px;
-		font-size: 0.9375rem;
-		line-height: 1.5;
-	}
-
-	.note strong {
-		font-weight: 600;
+		margin-bottom: var(--space-2);
+		color: var(--color-text-primary);
 	}
 </style>

@@ -2,12 +2,12 @@
 </script>
 
 <svelte:head>
-	<title>Methodology - Baseline</title>
+	<title>Science - Baseline</title>
 </svelte:head>
 
 <main>
 	<header>
-		<h1>Methodology</h1>
+		<h1>Science</h1>
 		<p class="subtitle">Scientific foundations for sleep metrics and target ranges</p>
 	</header>
 

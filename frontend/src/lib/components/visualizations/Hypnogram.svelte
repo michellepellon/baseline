@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { SleepRecord } from '$lib/api/client';
+	import type { SleepRecord, NightlySummary } from '$lib/api/client';
 	import {
 		Chart,
 		LineController,
@@ -13,6 +13,7 @@
 	import 'chartjs-adapter-date-fns';
 
 	export let records: SleepRecord[];
+	export let summary: NightlySummary | null = null;
 
 	let canvas: HTMLCanvasElement;
 	let chart: Chart | null = null;
@@ -101,7 +102,9 @@
 					{
 						data: dataPoints,
 						borderColor: '#6c7086',
-						borderWidth: 2,
+						borderWidth: 6,
+						borderCapStyle: 'round',
+						borderJoinStyle: 'round',
 						stepped: true,
 						pointRadius: 0,
 						pointHoverRadius: 4,
@@ -188,8 +191,9 @@
 							}
 						},
 						grid: {
-							color: '#eff1f5',
-							drawTicks: false
+							color: '#cdd6f4',
+							drawTicks: false,
+							lineWidth: 1
 						},
 						border: {
 							display: false
@@ -214,14 +218,44 @@
 	}
 </script>
 
-<div class="hypnogram-container">
-	<canvas bind:this={canvas}></canvas>
+<div class="hypnogram-wrapper">
+	<!-- Legend -->
+	<div class="legend">
+		<div class="legend-item">
+			<div class="legend-color" style="background-color: {stageColors.asleep_deep}"></div>
+			<span>Deep</span>
+		</div>
+		<div class="legend-item">
+			<div class="legend-color" style="background-color: {stageColors.asleep_core}"></div>
+			<span>Core</span>
+		</div>
+		<div class="legend-item">
+			<div class="legend-color" style="background-color: {stageColors.asleep_rem}"></div>
+			<span>REM</span>
+		</div>
+		<div class="legend-item">
+			<div class="legend-color" style="background-color: {stageColors.awake}"></div>
+			<span>Awake</span>
+		</div>
+	</div>
+
+	<!-- Hypnogram Chart -->
+	<div class="hypnogram-container">
+		<canvas bind:this={canvas}></canvas>
+	</div>
 </div>
 
 <style>
+	.hypnogram-wrapper {
+		background: #ffffff;
+		border: 1px solid #e5e5e5;
+		border-radius: 6px;
+		padding: 1.5rem;
+	}
+
 	.hypnogram-container {
 		width: 100%;
-		height: 300px;
+		height: 400px;
 		border-top: 1px solid #cdd6f4;
 		border-bottom: 1px solid #cdd6f4;
 		padding: 1rem 0;
@@ -230,5 +264,26 @@
 
 	canvas {
 		max-width: 100%;
+	}
+
+	.legend {
+		display: flex;
+		gap: 2rem;
+		margin-bottom: 1.5rem;
+		font-size: 0.875rem;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	.legend-item {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.legend-color {
+		width: 32px;
+		height: 6px;
+		border-radius: 3px;
 	}
 </style>

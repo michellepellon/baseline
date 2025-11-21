@@ -1,11 +1,25 @@
 -- DuckDB schema for Apple Health sleep data analysis
 
 -- Sequences for auto-incrementing IDs
+CREATE SEQUENCE IF NOT EXISTS seq_users START 1;
 CREATE SEQUENCE IF NOT EXISTS seq_sleep_records START 1;
 CREATE SEQUENCE IF NOT EXISTS seq_nightly_summary START 1;
 CREATE SEQUENCE IF NOT EXISTS seq_stage_events START 1;
 CREATE SEQUENCE IF NOT EXISTS seq_benchmarks START 1;
 CREATE SEQUENCE IF NOT EXISTS seq_metrics START 1;
+
+-- Users table: stores user authentication and profile data
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY DEFAULT nextval('seq_users'),
+    username VARCHAR NOT NULL UNIQUE,
+    hashed_password VARCHAR NOT NULL,
+    first_name VARCHAR,
+    last_name VARCHAR,
+    profile_picture BLOB,
+    profile_picture_mime_type VARCHAR,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 
 -- Sleep records table: stores individual sleep stage records
 CREATE TABLE IF NOT EXISTS sleep_records (
@@ -95,6 +109,7 @@ CREATE TABLE IF NOT EXISTS sleep_metrics (
 );
 
 -- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_sleep_records_date ON sleep_records(date);
 CREATE INDEX IF NOT EXISTS idx_sleep_records_stage ON sleep_records(sleep_stage);
 CREATE INDEX IF NOT EXISTS idx_sleep_stage_events_date ON sleep_stage_events(date);

@@ -1,0 +1,130 @@
+/**
+ * Baseline Design System
+ * Unified design tokens for consistent UI/UX
+ */
+
+:root {
+	/* ===== Typography ===== */
+	--font-family-base: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+	--font-family-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+		Arial, sans-serif;
+	--font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+
+	/* Type scale (1.25 ratio) */
+	--text-xs: 0.75rem; /* 12px */
+	--text-sm: 0.875rem; /* 14px */
+	--text-base: 1rem; /* 16px */
+	--text-lg: 1.25rem; /* 20px */
+	--text-xl: 1.5rem; /* 24px */
+	--text-2xl: 2rem; /* 32px */
+
+	/* Font weights */
+	--font-weight-normal: 400;
+	--font-weight-medium: 500;
+	--font-weight-semibold: 600;
+
+	/* ===== Colors ===== */
+	/* Primary */
+	--color-primary: #313244;
+	--color-primary-hover: #1e1e2e;
+	--color-accent: #cba6f7;
+	--color-accent-secondary: #a6adc8;
+
+	/* Semantic */
+	--color-success: #2e7d32;
+	--color-success-bg: #e8f5e9;
+	--color-success-border: #c8e6c9;
+	--color-danger: #d32f2f;
+	--color-danger-bg: #ffebee;
+	--color-danger-border: #ffcdd2;
+	--color-warning: #f9e2af;
+
+	/* Sleep stage colors */
+	--color-sleep-deep: #313244;
+	--color-sleep-core: #a6adc8;
+	--color-sleep-rem: #cba6f7;
+	--color-sleep-awake: #f5e0dc;
+
+	/* Text colors */
+	--color-text-primary: #000000;
+	--color-text-secondary: #666666;
+	--color-text-tertiary: #999999;
+
+	/* UI colors */
+	--color-border: #e5e5e5;
+	--color-border-subtle: #f5f5f5;
+	--color-bg-primary: #ffffff;
+	--color-bg-secondary: #fafafa;
+	--color-bg-tertiary: #f5f5f5;
+	--color-bg-overlay: #eff1f5;
+
+	/* Interactive states */
+	--color-focus: #6c7086;
+	--color-hover-bg: #f5f5f5;
+
+	/* ===== Spacing ===== */
+	/* Base unit: 4px */
+	--space-1: 0.25rem; /* 4px */
+	--space-2: 0.5rem; /* 8px */
+	--space-3: 0.75rem; /* 12px */
+	--space-4: 1rem; /* 16px */
+	--space-5: 1.25rem; /* 20px */
+	--space-6: 1.5rem; /* 24px */
+	--space-8: 2rem; /* 32px */
+	--space-10: 2.5rem; /* 40px */
+	--space-12: 3rem; /* 48px */
+
+	/* ===== Border Radius ===== */
+	--radius-sm: 3px;
+	--radius-base: 4px;
+	--radius-md: 6px;
+	--radius-lg: 8px;
+
+	/* ===== Shadows ===== */
+	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+	--shadow-base: 0 2px 4px rgba(0, 0, 0, 0.08);
+	--shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+	--shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.12);
+
+	/* ===== Transitions ===== */
+	--transition-fast: 150ms ease;
+	--transition-base: 300ms ease;
+	--transition-slow: 500ms ease;
+
+	/* ===== Z-index ===== */
+	--z-dropdown: 100;
+	--z-modal: 1000;
+	--z-toast: 2000;
+}
+
+/* ===== Global Resets ===== */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+/* ===== Utility Classes ===== */
+.text-primary {
+	color: var(--color-text-primary);
+}
+
+.text-secondary {
+	color: var(--color-text-secondary);
+}
+
+.text-success {
+	color: var(--color-success);
+}
+
+.text-danger {
+	color: var(--color-danger);
+}
+
+.font-base {
+	font-family: var(--font-family-base);
+}
+
+.font-ui {
+	font-family: var(--font-family-ui);
+}

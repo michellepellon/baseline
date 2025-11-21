@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  baseline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: baseline-health
+    ports:
+      - "5000:5000"
+    volumes:
+      # Persist DuckDB database
+      - ./data:/app/data
+      # Mount staging directory for HealthKit XML uploads
+      - ./staging:/app/staging
+    environment:
+      - PYTHONUNBUFFERED=1
+      # Optional: Set encryption key via environment variable
+      # Generate with: python -c "import secrets, base64; print(base64.b64encode(secrets.token_bytes(32)).decode())"
+      # - DUCKDB_ENCRYPTION_KEY=${DUCKDB_ENCRYPTION_KEY}
+    restart: unless-stopped

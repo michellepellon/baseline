@@ -31,7 +31,10 @@
 
 <main>
     <div class="login-container">
-        <div class="logo">baseline</div>
+        <div class="branding">
+            <div class="logo">baseline</div>
+            <p class="tagline">Your health, continuously understood.</p>
+        </div>
 
         <form on:submit|preventDefault={handleSubmit}>
             <div class="form-group">
@@ -92,116 +95,127 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #ffffff;
-        font-family:
-            -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-            "Helvetica Neue", Arial, sans-serif;
+        background: var(--color-bg-secondary);
+        font-family: var(--font-family-base);
     }
 
     .login-container {
         width: 100%;
         max-width: 480px;
-        padding: 2rem;
+        padding: var(--space-8);
+    }
+
+    .branding {
+        margin-bottom: var(--space-12);
     }
 
     .logo {
         display: inline-block;
-        border: 3px solid #000000;
-        padding: 0.75rem 1.5rem;
-        font-size: 1.75rem;
-        font-weight: 500;
-        margin-bottom: 3rem;
+        border: 2px solid var(--color-text-primary);
+        padding: var(--space-3) var(--space-6);
+        font-size: var(--text-xl);
+        font-weight: var(--font-weight-medium);
         letter-spacing: -0.02em;
     }
 
+    .tagline {
+        margin-top: var(--space-2);
+        font-size: var(--text-sm);
+        color: var(--color-text-secondary);
+    }
+
     form {
-        margin-bottom: 2rem;
+        margin-bottom: var(--space-8);
     }
 
     .form-group {
-        margin-bottom: 1.25rem;
+        margin-bottom: var(--space-5);
     }
 
     label {
         display: block;
-        margin-bottom: 0.5rem;
-        font-size: 0.9375rem;
-        font-weight: 500;
-        color: #000000;
+        margin-bottom: var(--space-2);
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-medium);
+        color: var(--color-text-primary);
+        font-variant: small-caps;
+        letter-spacing: 0.05em;
     }
 
     input[type="email"],
     input[type="password"],
     input[type="text"] {
         width: 100%;
-        padding: 0.75rem;
-        font-size: 1rem;
-        border: 2px solid #bfbfbf;
-        border-radius: 4px;
-        background: #ffffff;
-        color: #000000;
+        padding: var(--space-3);
+        font-size: var(--text-base);
+        font-family: var(--font-family-base);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-base);
+        background: var(--color-bg-primary);
+        color: var(--color-text-primary);
         box-sizing: border-box;
-        transition: border-color 0.15s;
+        transition: border-color var(--transition-fast);
     }
 
     input[type="email"]:focus,
     input[type="password"]:focus,
     input[type="text"]:focus {
         outline: none;
-        border-color: #5b9bd5;
+        border-color: var(--color-focus);
     }
 
     input[type="email"]:invalid:not(:placeholder-shown) {
-        border-color: #d32f2f;
+        border-color: var(--color-danger);
     }
 
     input[type="email"]:invalid:not(:placeholder-shown):focus {
-        border-color: #d32f2f;
+        border-color: var(--color-danger);
     }
 
     input:disabled {
         opacity: 0.6;
         cursor: not-allowed;
-        background: #f5f5f5;
+        background: var(--color-bg-tertiary);
     }
 
     .checkbox-group {
         display: flex;
         align-items: center;
-        margin-bottom: 1.5rem;
+        margin-bottom: var(--space-6);
     }
 
     input[type="checkbox"] {
         width: 1rem;
         height: 1rem;
         margin: 0;
-        margin-right: 0.5rem;
+        margin-right: var(--space-2);
         cursor: pointer;
     }
 
     .checkbox-label {
-        font-size: 0.9375rem;
-        font-weight: normal;
-        color: #000000;
+        font-size: var(--text-sm);
+        font-weight: var(--font-weight-normal);
+        color: var(--color-text-primary);
         cursor: pointer;
         margin: 0;
     }
 
     .primary-button {
         width: 100%;
-        padding: 0.875rem;
-        font-size: 1rem;
-        font-weight: 500;
-        background: #2b2b2b;
-        color: #ffffff;
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--text-base);
+        font-weight: var(--font-weight-medium);
+        font-family: var(--font-family-base);
+        background: var(--color-primary);
+        color: var(--color-bg-primary);
         border: none;
-        border-radius: 4px;
+        border-radius: var(--radius-base);
         cursor: pointer;
-        transition: background 0.15s;
+        transition: background var(--transition-fast);
     }
 
     .primary-button:hover:not(:disabled) {
-        background: #1a1a1a;
+        background: var(--color-primary-hover);
     }
 
     .primary-button:disabled {
@@ -210,19 +224,20 @@
     }
 
     .error {
-        margin-bottom: 1rem;
-        padding: 0.75rem;
-        background: #fee;
-        border: 1px solid #fcc;
-        border-radius: 4px;
-        color: #c00;
-        font-size: 0.875rem;
+        margin-bottom: var(--space-4);
+        padding: var(--space-3);
+        background: var(--color-danger-bg);
+        border: 1px solid var(--color-danger-border);
+        border-radius: var(--radius-base);
+        color: var(--color-danger);
+        font-size: var(--text-sm);
     }
 
     .footer-links {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.9375rem;
+        position: fixed;
+        bottom: var(--space-4);
+        right: var(--space-4);
+        font-size: var(--text-xs);
+        color: var(--color-text-tertiary);
     }
 </style>

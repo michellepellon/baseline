@@ -8,7 +8,8 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
@@ -33,10 +34,11 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": str(exc)},
     )
 
+
 # Configure CORS for local frontend development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # SvelteKit default dev port
+    allow_origins=["http://localhost:5000"],  # SvelteKit default dev port
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -66,3 +68,36 @@ async def health_check():
         "database": "not_initialized",
         "parser": "ready",
     }
+
+
+# Mount static files for frontend
+frontend_build_path = project_root / "frontend" / "build"
+if frontend_build_path.exists():
+    # Mount the _app directory for assets
+    app.mount(
+        "/_app",
+        StaticFiles(directory=str(frontend_build_path / "_app")),
+        name="app_assets",
+    )
+
+    # Serve index.html for all other routes (SPA fallback)
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """Serve the SPA for all non-API routes."""
+        # If the path is an API route, let it pass through
+        if full_path.startswith(("api/", "docs", "redoc", "openapi.json")):
+            return JSONResponse(
+                status_code=404, content={"detail": "API endpoint not found"}
+            )
+
+        # Check if it's a static file request
+        file_path = frontend_build_path / full_path
+        if file_path.exists() and file_path.is_file():
+            return FileResponse(file_path)
+
+        # Otherwise, serve the index.html (SPA fallback)
+        index_path = frontend_build_path / "index.html"
+        if index_path.exists():
+            return FileResponse(index_path)
+
+        return JSONResponse(status_code=404, content={"detail": "Not found"})

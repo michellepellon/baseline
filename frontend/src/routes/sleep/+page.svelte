@@ -5,6 +5,8 @@
 		getNightlySummaries,
 		type NightlySummary
 	} from '$lib/api/client';
+	import EmptyState from '$lib/components/EmptyState.svelte';
+	import Skeleton from '$lib/components/Skeleton.svelte';
 
 	let stats: Awaited<ReturnType<typeof getSleepStats>> | null = null;
 	let summaries: NightlySummary[] = [];
@@ -25,6 +27,66 @@
 	}
 
 	onMount(loadData);
+
+	// Generate last 30 days tracking visualization
+	function getLast30DaysTracking(): boolean[] {
+		if (!summaries || summaries.length === 0) return [];
+
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		const last30Days: boolean[] = [];
+		const summaryDates = new Set(summaries.map(s => s.date));
+
+		for (let i = 29; i >= 0; i--) {
+			const date = new Date(today);
+			date.setDate(date.getDate() - i);
+			const dateStr = date.toISOString().split('T')[0];
+			last30Days.push(summaryDates.has(dateStr));
+		}
+
+		return last30Days;
+	}
+
+	// Get sleep hours for last 30 days
+	function getLast30DaysSleep(): (number | null)[] {
+		if (!summaries || summaries.length === 0) return [];
+
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		const summaryMap = new Map(summaries.map(s => [s.date, s.total_sleep_hours]));
+		const last30Days: (number | null)[] = [];
+
+		for (let i = 29; i >= 0; i--) {
+			const date = new Date(today);
+			date.setDate(date.getDate() - i);
+			const dateStr = date.toISOString().split('T')[0];
+			last30Days.push(summaryMap.get(dateStr) ?? null);
+		}
+
+		return last30Days;
+	}
+
+	// Get efficiency for last 30 days
+	function getLast30DaysEfficiency(): (number | null)[] {
+		if (!summaries || summaries.length === 0) return [];
+
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		const summaryMap = new Map(summaries.map(s => [s.date, s.sleep_efficiency_pct]));
+		const last30Days: (number | null)[] = [];
+
+		for (let i = 29; i >= 0; i--) {
+			const date = new Date(today);
+			date.setDate(date.getDate() - i);
+			const dateStr = date.toISOString().split('T')[0];
+			last30Days.push(summaryMap.get(dateStr) ?? null);
+		}
+
+		return last30Days;
+	}
 
 	function formatHours(hours: number): string {
 		const h = Math.floor(hours);
@@ -64,71 +126,160 @@
 	</header>
 
 	{#if loading}
-		<div class="status">Loading data...</div>
-	{:else if error}
-		<div class="status error">
-			{error}
-			<p style="margin-top: 1rem;">
-				<a href="/data" style="color: #0066cc; text-decoration: none;">
-					Import data to get started →
-				</a>
-			</p>
-		</div>
-	{:else if stats && stats.total_nights > 0}
-		<!-- Summary statistics - dense, tabular -->
-		<section class="summary-stats">
-			<table>
-				<thead>
-					<tr>
-						<th>Period</th>
-						<th>Nights</th>
-						<th>Avg Sleep</th>
-						<th>Avg Efficiency</th>
-						<th>REM</th>
-						<th>Deep</th>
-						<th>Core</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>{stats.date_range.start} to {stats.date_range.end}</td>
-						<td>{stats.total_nights}</td>
-						<td>{formatHours(stats.average_sleep_hours)}</td>
-						<td class={getEfficiencyClass(stats.average_efficiency)}>
-							{stats.average_efficiency.toFixed(1)}%
-						</td>
-						<td>{stats.average_rem_pct?.toFixed(1) || '—'}%</td>
-						<td>{stats.average_deep_pct?.toFixed(1) || '—'}%</td>
-						<td>{stats.average_core_pct?.toFixed(1) || '—'}%</td>
-					</tr>
-				</tbody>
-			</table>
-			<p class="benchmark-note">
-				Target ranges: Sleep 7-9h [1], Efficiency ≥90% [2], REM 20-25% [3], Deep 13-23% [4], Core 45-55% [4]
-			</p>
+		<!-- Skeleton Loading State -->
+		<section class="overview-metrics">
+			<div class="metric-card">
+				<Skeleton height="2rem" width="60%" />
+				<Skeleton height="0.75rem" width="40%" />
+				<div style="margin-top: 1rem;">
+					<Skeleton height="12px" borderRadius="6px" />
+					<div style="margin-top: 0.5rem; display: flex; justify-content: space-between;">
+						<Skeleton height="0.75rem" width="15%" />
+						<Skeleton height="0.75rem" width="15%" />
+						<Skeleton height="0.75rem" width="15%" />
+					</div>
+				</div>
+			</div>
+			<div class="metric-card">
+				<Skeleton height="2rem" width="60%" />
+				<Skeleton height="0.75rem" width="40%" />
+				<div style="margin-top: 1rem;">
+					<Skeleton height="12px" borderRadius="6px" />
+					<div style="margin-top: 0.5rem; display: flex; justify-content: space-between;">
+						<Skeleton height="0.75rem" width="15%" />
+						<Skeleton height="0.75rem" width="15%" />
+					</div>
+				</div>
+			</div>
+			<div class="metric-card">
+				<Skeleton height="2rem" width="60%" />
+				<Skeleton height="0.75rem" width="40%" />
+				<div style="margin-top: 1rem;">
+					<Skeleton height="12px" borderRadius="6px" />
+					<div style="margin-top: 0.5rem; display: flex; justify-content: space-between;">
+						<Skeleton height="0.75rem" width="15%" />
+						<Skeleton height="0.75rem" width="15%" />
+						<Skeleton height="0.75rem" width="15%" />
+					</div>
+				</div>
+			</div>
 		</section>
 
-		<!-- Small multiples grid: nights at a glance -->
-		<section class="small-multiples">
-			<h2>Nightly Records</h2>
-			<div class="nights-grid">
-				{#each summaries as summary}
-					<a href="/sleep/{summary.date}" class="night-card">
-						<div class="night-date">{formatDate(summary.date)}</div>
-						<div class="night-times">
-							{formatTime(summary.sleep_start)}–{formatTime(summary.sleep_end)}
+		<section class="nightly-records">
+			<h2>History</h2>
+			<div class="nights-list">
+				{#each Array(5) as _}
+					<div class="night-row-skeleton">
+						<Skeleton width="80px" height="1rem" />
+						<div>
+							<Skeleton width="200px" height="0.875rem" />
+							<Skeleton width="100px" height="1rem" />
 						</div>
-						<div class="night-duration">{formatHours(summary.total_sleep_hours)}</div>
+						<Skeleton height="12px" borderRadius="2px" />
+						<Skeleton width="60px" height="0.875rem" />
+					</div>
+				{/each}
+			</div>
+		</section>
+	{:else if error || !stats || stats.total_nights === 0}
+		<EmptyState
+			title="No sleep data yet"
+			description="Import your Apple Health data to start tracking your sleep patterns and gain insights into your sleep quality."
+			actionLabel="Import Data"
+			actionHref="/data"
+		/>
+	{:else if stats && stats.total_nights > 0}
+		<!-- Overview metrics -->
+		<section class="overview-metrics">
+			<div class="metric-card">
+				<div class="metric-content">
+					<span class="metric-value">{formatHours(stats.average_sleep_hours)}</span>
+					<span class="metric-label">avg sleep</span>
+				</div>
+				<div class="range-gauge">
+					<div class="range-track">
+						<div class="range-target poor" style="left: 0%; width: 70%"></div>
+						<div class="range-target optimal" style="left: 70%; width: 20%"></div>
+						<div class="range-target warning" style="left: 90%; width: 10%"></div>
+						<div class="range-marker" style="left: {Math.min(Math.max((stats.average_sleep_hours / 10) * 100, 0), 100)}%"></div>
+					</div>
+					<div class="range-labels">
+						<span>0h</span>
+						<span>7h</span>
+						<span>9h</span>
+						<span>10h</span>
+					</div>
+				</div>
+			</div>
 
-						<!-- Minimal sleep stage strip -->
+			<div class="metric-card">
+				<div class="metric-content">
+					<span class="metric-value">{stats.average_efficiency.toFixed(0)}%</span>
+					<span class="metric-label">efficiency</span>
+				</div>
+				<div class="range-gauge">
+					<div class="range-track">
+						<div class="range-target poor" style="left: 0%; width: 90%"></div>
+						<div class="range-target optimal" style="left: 90%; width: 10%"></div>
+						<div class="range-marker" style="left: {stats.average_efficiency}%"></div>
+					</div>
+					<div class="range-labels">
+						<span>0%</span>
+						<span>90%</span>
+						<span>100%</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="metric-card">
+				<div class="metric-content">
+					<span class="metric-value">{getLast30DaysTracking().filter(t => t).length}/30</span>
+					<span class="metric-label">last 30 days</span>
+				</div>
+				<div class="range-gauge">
+					<div class="range-track">
+						<div class="range-target optimal" style="left: 0%; width: 100%"></div>
+						<div class="range-marker" style="left: {(getLast30DaysTracking().filter(t => t).length / 30) * 100}%"></div>
+					</div>
+					<div class="range-labels">
+						<span>0</span>
+						<span>15</span>
+						<span>30</span>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Nightly records: Timeline view with visual sleep architecture -->
+		<section class="nightly-records">
+			<h2>History</h2>
+			<div class="nights-list">
+				{#each summaries as summary}
+					<a href="/sleep/{summary.date}" class="night-row">
+						<div class="night-date">{formatDate(summary.date)}</div>
+
+						<div class="night-core">
+							<div class="night-times">
+								{formatTime(summary.sleep_start)} – {formatTime(summary.sleep_end)}
+							</div>
+							<div class="night-duration">{formatHours(summary.total_sleep_hours)}</div>
+						</div>
+
+						<!-- Visual sleep stage breakdown -->
 						{#if summary.asleep_rem_pct}
-							<div class="stage-strip">
-								<div class="stage rem" style="width: {summary.asleep_rem_pct}%"
-									 title="REM {summary.asleep_rem_pct.toFixed(1)}%"></div>
-								<div class="stage deep" style="width: {summary.asleep_deep_pct}%"
-									 title="Deep {summary.asleep_deep_pct.toFixed(1)}%"></div>
-								<div class="stage core" style="width: {summary.asleep_core_pct}%"
-									 title="Core {summary.asleep_core_pct.toFixed(1)}%"></div>
+							<div class="stage-bar-wrapper">
+								<div class="stage-bar">
+									<div class="stage deep" style="width: {summary.asleep_deep_pct}%"></div>
+									<div class="stage core" style="width: {summary.asleep_core_pct}%"></div>
+									<div class="stage rem" style="width: {summary.asleep_rem_pct}%"></div>
+									<div class="stage awake" style="width: {summary.awake_pct || 0}%"></div>
+								</div>
+								<div class="stage-tooltip">
+									Deep: {Math.round(summary.asleep_deep_minutes || 0)}m ({summary.asleep_deep_pct?.toFixed(1)}%) |
+									Core: {Math.round(summary.asleep_core_minutes || 0)}m ({summary.asleep_core_pct?.toFixed(1)}%) |
+									REM: {Math.round(summary.asleep_rem_minutes || 0)}m ({summary.asleep_rem_pct?.toFixed(1)}%) |
+									Awake: {Math.round(summary.awake_minutes || 0)}m ({(summary.awake_pct || 0).toFixed(1)}%)
+								</div>
 							</div>
 						{/if}
 
@@ -140,52 +291,6 @@
 				{/each}
 			</div>
 		</section>
-
-		<!-- Comparative table: see all nights at once -->
-		<section class="data-table">
-			<h2>Detailed Records</h2>
-			<table>
-				<thead>
-					<tr>
-						<th>Date</th>
-						<th>Bedtime</th>
-						<th>Wake</th>
-						<th>Total</th>
-						<th>Efficiency</th>
-						<th>REM</th>
-						<th>Deep</th>
-						<th>Core</th>
-						<th>Awake</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each summaries as summary}
-						<tr>
-							<td><a href="/sleep/{summary.date}">{formatDate(summary.date)}</a></td>
-							<td>{formatTime(summary.sleep_start)}</td>
-							<td>{formatTime(summary.sleep_end)}</td>
-							<td>{formatHours(summary.total_sleep_hours)}</td>
-							<td class={getEfficiencyClass(summary.sleep_efficiency_pct)}>
-								{summary.sleep_efficiency_pct.toFixed(1)}%
-							</td>
-							<td>{summary.asleep_rem_minutes || 0}m</td>
-							<td>{summary.asleep_deep_minutes || 0}m</td>
-							<td>{summary.asleep_core_minutes || 0}m</td>
-							<td>{summary.awake_minutes || 0}m</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</section>
-	{:else}
-		<div class="status">
-			No sleep data available.
-			<p style="margin-top: 1rem;">
-				<a href="/data" style="color: #0066cc; text-decoration: none;">
-					Import data to get started →
-				</a>
-			</p>
-		</div>
 	{/if}
 </main>
 
@@ -236,174 +341,264 @@
 		background: #ffebee;
 	}
 
-	/* Summary statistics table - high data density */
-	.summary-stats {
+	/* Overview metrics - unified with page design */
+	.overview-metrics {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.5rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.metric-card {
 		background: #ffffff;
 		border: 1px solid #e5e5e5;
 		border-radius: 6px;
+		border-left: 6px solid #6c7086;
 		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
 	}
 
-	.summary-stats table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.9375rem;
+	.metric-card:nth-child(1) {
+		border-left-color: #313244; /* Deep sleep - dark */
 	}
 
-	.summary-stats th {
-		text-align: left;
-		font-weight: 500;
-		border-bottom: 2px solid #e5e5e5;
-		padding: 0.75rem 0.75rem;
-		font-variant: small-caps;
+	.metric-card:nth-child(2) {
+		border-left-color: #cba6f7; /* REM - purple */
+	}
+
+	.metric-card:nth-child(3) {
+		border-left-color: #a6adc8; /* Core - gray-blue */
+	}
+
+	.metric-content {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.metric-value {
+		font-size: 2rem;
+		font-weight: 300;
+		color: #000;
+		letter-spacing: -0.02em;
+		line-height: 1;
+	}
+
+	.metric-label {
+		font-size: 0.75rem;
+		text-transform: uppercase;
 		letter-spacing: 0.05em;
 		color: #666;
+		font-variant: small-caps;
 	}
 
-	.summary-stats td {
-		padding: 0.75rem 0.75rem;
-		border-bottom: 1px solid #f5f5f5;
+	/* Range gauge */
+	.range-gauge {
+		padding-top: 0.5rem;
+		border-top: 1px solid #eff1f5;
 	}
 
-	.benchmark-note {
-		margin: 1rem 0 0 0;
-		font-size: 0.875rem;
-		color: #666;
-		font-style: italic;
-		line-height: 1.5;
+	.range-track {
+		position: relative;
+		height: 12px;
+		background: #eff1f5;
+		border-radius: 6px;
+		margin-bottom: 0.5rem;
+		overflow: hidden;
 	}
 
-	/* Efficiency classes - vibrant color */
+	.range-target {
+		position: absolute;
+		height: 100%;
+	}
+
+	.range-target.poor {
+		background: #f5e0dc;
+	}
+
+	.range-target.warning {
+		background: #f9e2af;
+	}
+
+	.range-target.optimal {
+		background: #a6e3a1;
+	}
+
+	.range-marker {
+		position: absolute;
+		top: 50%;
+		transform: translate(-50%, -50%);
+		width: 6px;
+		height: 20px;
+		background: #89b4fa;
+		border-radius: 3px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+	}
+
+	.range-labels {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.75rem;
+		color: #6c7086;
+	}
+
+	/* Efficiency classes */
 	.excellent {
-		color: #2e7d32; /* Vibrant Green */
+		color: #2e7d32;
 	}
 
 	.good {
-		color: #1976d2; /* Blue */
+		color: #1976d2;
 	}
 
 	.fair {
-		color: #d32f2f; /* Vibrant Red */
+		color: #d32f2f;
 	}
 
-	/* Small multiples grid - Tufte's favorite */
-	.small-multiples {
+	/* Nightly records - Timeline list with visual stage bars */
+	.nightly-records {
 		background: #ffffff;
 		border: 1px solid #e5e5e5;
 		border-radius: 6px;
 		padding: 1.5rem;
 	}
 
-	.nights-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-		gap: 1rem;
+	.nights-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
 		margin-top: 1rem;
 	}
 
-	.night-card {
-		display: block;
+	.night-row {
+		display: grid;
+		grid-template-columns: 80px 200px 1fr 60px;
+		gap: 1rem;
+		align-items: center;
+		padding: 0.75rem 1rem;
+		background: #fafafa;
 		border: 1px solid #e5e5e5;
 		border-radius: 4px;
-		padding: 0.875rem;
 		text-decoration: none;
 		color: inherit;
 		transition: all 0.15s;
-		background: #fafafa;
 	}
 
-	.night-card:hover {
+	.night-row:hover {
+		background: #ffffff;
 		border-color: #999;
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 	}
 
 	.night-date {
-		font-size: 0.9rem;
+		font-size: 0.875rem;
 		font-weight: 600;
-		margin-bottom: 0.25rem;
+		color: #333;
+	}
+
+	.night-core {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
 	}
 
 	.night-times {
-		font-size: 0.75rem;
-		color: #6c7086; /* Overlay0 */
-		margin-bottom: 0.25rem;
+		font-size: 0.8125rem;
+		color: #6c7086;
 	}
 
 	.night-duration {
-		font-size: 1.1rem;
-		margin-bottom: 0.5rem;
+		font-size: 1rem;
+		font-weight: 500;
 	}
 
-	/* Minimal stage strip - pure data-ink */
-	.stage-strip {
+	/* Visual stage bar - Tufte-style data visualization */
+	.stage-bar-wrapper {
+		position: relative;
+		width: 100%;
+	}
+
+	.stage-bar {
 		display: flex;
-		height: 6px;
-		margin-bottom: 0.5rem;
+		height: 12px;
+		border-radius: 2px;
+		overflow: hidden;
+		background: #eff1f5;
+		cursor: pointer;
 	}
 
 	.stage {
-		height: 100%;
-	}
-
-	.stage.rem {
-		background: #cba6f7; /* Mauve */
+		transition: all 0.2s;
 	}
 
 	.stage.deep {
-		background: #313244; /* Surface0 - darkest */
+		background: #313244;
 	}
 
 	.stage.core {
-		background: #a6adc8; /* Overlay2 */
+		background: #a6adc8;
+	}
+
+	.stage.rem {
+		background: #cba6f7;
+	}
+
+	.stage.awake {
+		background: #f5e0dc;
+	}
+
+	/* Custom tooltip */
+	.stage-tooltip {
+		position: absolute;
+		bottom: 100%;
+		left: 50%;
+		transform: translateX(-50%);
+		margin-bottom: 8px;
+		padding: 8px 12px;
+		background: #1e1e2e;
+		color: #cdd6f4;
+		font-size: 0.75rem;
+		border-radius: 4px;
+		white-space: nowrap;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.2s;
+		z-index: 10;
+		border: 1px solid #6c7086;
+	}
+
+	.stage-tooltip::after {
+		content: '';
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		transform: translateX(-50%);
+		border: 4px solid transparent;
+		border-top-color: #1e1e2e;
+	}
+
+	.stage-bar-wrapper:hover .stage-tooltip {
+		opacity: 1;
 	}
 
 	.night-efficiency {
-		font-size: 0.85rem;
+		font-size: 0.875rem;
+		font-weight: 500;
 		text-align: right;
 	}
 
-	/* Detailed data table - maximize information */
-	.data-table {
-		background: #ffffff;
-		border: 1px solid #e5e5e5;
-		border-radius: 6px;
-		padding: 1.5rem;
-		overflow-x: auto;
-	}
-
-	.data-table table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.9375rem;
-	}
-
-	.data-table th {
-		text-align: left;
-		font-weight: 500;
-		border-bottom: 2px solid #e5e5e5;
-		padding: 0.75rem 0.75rem;
-		font-variant: small-caps;
-		letter-spacing: 0.05em;
-		white-space: nowrap;
-		color: #666;
-	}
-
-	.data-table td {
-		padding: 0.75rem 0.75rem;
-		border-bottom: 1px solid #f5f5f5;
-		white-space: nowrap;
-	}
-
-	.data-table tr:hover {
+	/* Skeleton Loading */
+	.night-row-skeleton {
+		display: grid;
+		grid-template-columns: 80px 200px 1fr 60px;
+		gap: 1rem;
+		align-items: center;
+		padding: 0.75rem 1rem;
 		background: #fafafa;
-	}
-
-	.data-table a {
-		color: #0066cc;
-		text-decoration: none;
-	}
-
-	.data-table a:hover {
-		text-decoration: underline;
+		border: 1px solid #e5e5e5;
+		border-radius: 4px;
+		margin-bottom: 0.5rem;
 	}
 </style>

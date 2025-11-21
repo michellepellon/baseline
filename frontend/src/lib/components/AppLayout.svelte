@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { authStore } from '$lib/stores/auth';
@@ -6,21 +7,82 @@
 	let { children } = $props();
 
 	let username = $derived($authStore.username || 'User');
+	let displayName = $state('');
 	let showUserMenu = $state(false);
+	let profilePictureUrl = $state<string | null>(null);
+	let initials = $state('U');
+
+	async function loadUserProfile() {
+		try {
+			const response = await fetch('/api/auth/me', {
+				headers: {
+					Authorization: `Bearer ${$authStore.token}`
+				}
+			});
+
+			if (response.ok) {
+				const data = await response.json();
+				if (data.first_name || data.last_name) {
+					const parts = [];
+					if (data.first_name) parts.push(data.first_name);
+					if (data.last_name) parts.push(data.last_name);
+					displayName = parts.join(' ');
+
+					// Calculate initials
+					if (data.first_name && data.last_name) {
+						initials = `${data.first_name.charAt(0)}${data.last_name.charAt(0)}`.toUpperCase();
+					} else if (data.first_name) {
+						initials = data.first_name.charAt(0).toUpperCase();
+					} else {
+						initials = username.charAt(0).toUpperCase();
+					}
+				} else {
+					displayName = username;
+					initials = username.charAt(0).toUpperCase();
+				}
+
+				profilePictureUrl = data.profile_picture_url || null;
+			} else {
+				displayName = username;
+				initials = username.charAt(0).toUpperCase();
+			}
+		} catch (error) {
+			console.error('Failed to load user profile:', error);
+			displayName = username;
+			initials = username.charAt(0).toUpperCase();
+		}
+	}
+
+	onMount(() => {
+		loadUserProfile();
+
+		// Close dropdown when clicking outside
+		const handleClickOutside = (event: MouseEvent) => {
+			const target = event.target as HTMLElement;
+			if (!target.closest('.user-menu')) {
+				showUserMenu = false;
+			}
+		};
+
+		document.addEventListener('click', handleClickOutside);
+		return () => document.removeEventListener('click', handleClickOutside);
+	});
 
 	function handleLogout() {
+		showUserMenu = false;
 		authStore.logout();
 		goto('/login');
 	}
 
-	function toggleUserMenu() {
+	function toggleUserMenu(event: MouseEvent) {
+		event.stopPropagation();
 		showUserMenu = !showUserMenu;
 	}
 
 	let navItems = [
 		{ name: 'Sleep', path: '/sleep' },
 		{ name: 'Data', path: '/data' },
-		{ name: 'Methodology', path: '/methodology' }
+		{ name: 'Science', path: '/methodology' }
 	];
 </script>
 
@@ -101,11 +163,16 @@
 								stroke-linecap="round"
 								stroke-linejoin="round"
 							>
-								<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-								<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+								<!-- DNA strand icon -->
+								<path d="M2 15c3.3 3.3 6.7 0 10 0s6.7 3.3 10 0" />
+								<path d="M2 9c3.3-3.3 6.7 0 10 0s6.7-3.3 10 0" />
+								<path d="M5 15v-6" />
+								<path d="M9 15V9" />
+								<path d="M15 15V9" />
+								<path d="M19 15v-6" />
 							</svg>
 						</span>
-						<span class="nav-label">Methodology</span>
+						<span class="nav-label">Science</span>
 					</a>
 				</li>
 			</ul>
@@ -121,7 +188,16 @@
 			<div class="header-right">
 				<div class="user-menu">
 					<button class="user-button" onclick={toggleUserMenu}>
-						{username}
+						{#if profilePictureUrl}
+							<img
+								src="{profilePictureUrl}?t={Date.now()}"
+								alt="Profile"
+								class="user-avatar-image"
+							/>
+						{:else}
+							<div class="user-avatar">{initials}</div>
+						{/if}
+						<span class="user-name">{displayName || username}</span>
 						<span class="dropdown-arrow">▾</span>
 					</button>
 
@@ -197,27 +273,37 @@
 	.nav-item {
 		display: flex;
 		align-items: center;
-		padding: 0.625rem 0.75rem;
-		color: #333;
+		padding: var(--space-3);
+		color: var(--color-text-secondary);
 		text-decoration: none;
-		border-radius: 4px;
-		font-size: 0.9375rem;
-		transition: background 0.15s;
+		border-radius: var(--radius-base);
+		border-left: 4px solid transparent;
+		font-size: var(--text-sm);
+		transition: all var(--transition-fast);
+		position: relative;
 	}
 
 	.nav-item:hover {
-		background: #f5f5f5;
+		background: var(--color-hover-bg);
+		color: var(--color-text-primary);
 	}
 
 	.nav-item.active {
-		background: #f0f0f0;
-		font-weight: 500;
+		background: var(--color-bg-tertiary);
+		font-weight: var(--font-weight-medium);
+		color: var(--color-text-primary);
+		border-left-color: var(--color-primary);
 	}
 
 	.nav-icon {
-		margin-right: 0.75rem;
+		margin-right: var(--space-3);
 		display: flex;
 		align-items: center;
+		transition: color var(--transition-fast);
+	}
+
+	.nav-item.active .nav-icon {
+		color: var(--color-primary);
 	}
 
 	/* Main Content Wrapper */
@@ -269,6 +355,35 @@
 
 	.user-button:hover {
 		background: #f5f5f5;
+	}
+
+	.user-avatar {
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.75rem;
+		font-weight: var(--font-weight-medium);
+		color: var(--color-bg-primary);
+		letter-spacing: -0.02em;
+	}
+
+	.user-avatar-image {
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		object-fit: cover;
+		border: 1px solid var(--color-border);
+	}
+
+	.user-name {
+		max-width: 150px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.dropdown-arrow {

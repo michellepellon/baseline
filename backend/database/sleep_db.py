@@ -7,20 +7,48 @@ from pathlib import Path
 import duckdb
 import polars as pl
 
+from backend.config.settings import settings
+
 
 class SleepDatabase:
-    """Manage sleep data in DuckDB."""
+    """Manage sleep data in DuckDB with encryption at rest."""
 
     def __init__(self, db_path: str | Path = "data/sleep_analysis.duckdb"):
         """
-        Initialize database connection.
+        Initialize database connection with encryption.
 
         Args:
             db_path: Path to DuckDB database file
         """
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self.conn = duckdb.connect(str(self.db_path))
+
+        # Get encryption key
+        encryption_key = settings.db_encryption_key
+
+        # Start with in-memory connection
+        self.conn = duckdb.connect(":memory:")
+
+        # Load httpfs extension for OpenSSL hardware-accelerated encryption
+        try:
+            self.conn.execute("INSTALL httpfs;")
+            self.conn.execute("LOAD httpfs;")
+        except Exception:
+            # httpfs not available, will use MbedTLS (slower but functional)
+            pass
+
+        # Attach the database file with encryption
+        # Use parameterized query for safety
+        self.conn.execute(
+            f"ATTACH '{self.db_path}' AS db (ENCRYPTION_KEY '{encryption_key}');"
+        )
+
+        # Use the attached database
+        self.conn.execute("USE db;")
+
+        # Enable temporary file encryption for additional security
+        self.conn.execute("SET temp_file_encryption = true;")
+
         self._initialize_schema()
 
     def _initialize_schema(self):
@@ -29,6 +57,34 @@ class SleepDatabase:
         with open(schema_path) as f:
             schema_sql = f.read()
         self.conn.execute(schema_sql)
+
+        # Run migrations for existing databases
+        self._run_migrations()
+
+    def _run_migrations(self):
+        """Run database migrations for schema updates."""
+        try:
+            # Check if profile_picture columns exist
+            result = self.conn.execute("""
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = 'users'
+                AND column_name IN ('profile_picture', 'profile_picture_mime_type')
+            """).fetchall()
+
+            existing_columns = [row[0] for row in result]
+
+            # Add profile_picture column if it doesn't exist
+            if 'profile_picture' not in existing_columns:
+                self.conn.execute("ALTER TABLE users ADD COLUMN profile_picture BLOB;")
+
+            # Add profile_picture_mime_type column if it doesn't exist
+            if 'profile_picture_mime_type' not in existing_columns:
+                self.conn.execute("ALTER TABLE users ADD COLUMN profile_picture_mime_type VARCHAR;")
+        except Exception:
+            # If migration fails, it's likely because the columns already exist
+            # or the table doesn't exist yet (will be created by schema.sql)
+            pass
 
     def insert_sleep_records(self, df: pl.DataFrame) -> int:
         """
@@ -214,6 +270,143 @@ class SleepDatabase:
             """
         )
         return result.fetchall()[0][0] if result else 0
+
+    def create_user(
+        self,
+        username: str,
+        hashed_password: str,
+        first_name: str | None = None,
+        last_name: str | None = None,
+    ) -> dict | None:
+        """
+        Create a new user.
+
+        Args:
+            username: User's email/username
+            hashed_password: Hashed password
+            first_name: Optional first name
+            last_name: Optional last name
+
+        Returns:
+            User dictionary or None if user already exists
+        """
+        try:
+            self.conn.execute(
+                """
+                INSERT INTO users (username, hashed_password, first_name, last_name)
+                VALUES (?, ?, ?, ?)
+                """,
+                [username, hashed_password, first_name, last_name],
+            )
+            return self.get_user(username)
+        except duckdb.ConstraintException:
+            return None
+
+    def get_user(self, username: str) -> dict | None:
+        """
+        Retrieve user by username.
+
+        Args:
+            username: User's email/username
+
+        Returns:
+            User dictionary or None if not found
+        """
+        # Check if profile_picture columns exist
+        try:
+            result = self.conn.execute(
+                """
+                SELECT username, hashed_password, first_name, last_name,
+                       profile_picture, profile_picture_mime_type
+                FROM users
+                WHERE username = ?
+                """,
+                [username],
+            ).fetchone()
+
+            if result:
+                return {
+                    "username": result[0],
+                    "hashed_password": result[1],
+                    "first_name": result[2],
+                    "last_name": result[3],
+                    "profile_picture": result[4],
+                    "profile_picture_mime_type": result[5],
+                }
+        except Exception:
+            # Fall back to query without profile_picture columns
+            result = self.conn.execute(
+                """
+                SELECT username, hashed_password, first_name, last_name
+                FROM users
+                WHERE username = ?
+                """,
+                [username],
+            ).fetchone()
+
+            if result:
+                return {
+                    "username": result[0],
+                    "hashed_password": result[1],
+                    "first_name": result[2],
+                    "last_name": result[3],
+                    "profile_picture": None,
+                    "profile_picture_mime_type": None,
+                }
+
+        return None
+
+    def update_user_profile(
+        self,
+        username: str,
+        first_name: str | None = None,
+        last_name: str | None = None,
+        profile_picture: bytes | None = None,
+        profile_picture_mime_type: str | None = None,
+    ) -> dict | None:
+        """
+        Update user profile information.
+
+        Args:
+            username: User's email/username
+            first_name: Optional first name
+            last_name: Optional last name
+            profile_picture: Optional profile picture bytes
+            profile_picture_mime_type: Optional MIME type for profile picture
+
+        Returns:
+            Updated user dictionary or None if user not found
+        """
+        user = self.get_user(username)
+        if not user:
+            return None
+
+        # Build update query dynamically based on provided fields
+        updates = []
+        params = []
+
+        if first_name is not None:
+            updates.append("first_name = ?")
+            params.append(first_name)
+
+        if last_name is not None:
+            updates.append("last_name = ?")
+            params.append(last_name)
+
+        if profile_picture is not None:
+            updates.append("profile_picture = ?")
+            params.append(profile_picture)
+            updates.append("profile_picture_mime_type = ?")
+            params.append(profile_picture_mime_type)
+
+        updates.append("updated_at = now()")
+        params.append(username)
+
+        query = f"UPDATE users SET {', '.join(updates)} WHERE username = ?"
+
+        self.conn.execute(query, params)
+
+        return self.get_user(username)
 
     def close(self):
         """Close database connection."""

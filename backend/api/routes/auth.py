@@ -2,10 +2,12 @@
 Authentication endpoints.
 """
 
+import base64
 from datetime import timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import Response
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
@@ -14,7 +16,7 @@ from backend.auth.security import (
     create_access_token,
     verify_token,
 )
-from backend.auth.users import authenticate_user, get_user
+from backend.auth.users import authenticate_user, get_user, update_user_profile
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -32,6 +34,16 @@ class UserResponse(BaseModel):
     """User response model."""
 
     username: str
+    first_name: str | None = None
+    last_name: str | None = None
+    profile_picture_url: str | None = None
+
+
+class UpdateProfileRequest(BaseModel):
+    """Update profile request model."""
+
+    first_name: str | None = None
+    last_name: str | None = None
 
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> str:
@@ -89,4 +101,136 @@ async def get_me(current_user: Annotated[str, Depends(get_current_user)]):
     Returns:
         Current user details
     """
-    return {"username": current_user}
+    user = get_user(current_user)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+
+    profile_picture_url = None
+    if user.profile_picture:
+        profile_picture_url = "/api/auth/profile-picture"
+
+    return {
+        "username": user.username,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "profile_picture_url": profile_picture_url,
+    }
+
+
+@router.put("/me", response_model=UserResponse)
+async def update_me(
+    profile: UpdateProfileRequest,
+    current_user: Annotated[str, Depends(get_current_user)],
+):
+    """
+    Update current user profile.
+
+    Returns:
+        Updated user details
+    """
+    user = update_user_profile(
+        current_user, first_name=profile.first_name, last_name=profile.last_name
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+
+    profile_picture_url = None
+    if user.profile_picture:
+        profile_picture_url = "/api/auth/profile-picture"
+
+    return {
+        "username": user.username,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "profile_picture_url": profile_picture_url,
+    }
+
+
+@router.post("/profile-picture")
+async def upload_profile_picture(
+    file: UploadFile,
+    current_user: Annotated[str, Depends(get_current_user)],
+):
+    """
+    Upload a profile picture.
+
+    Returns:
+        Success message
+    """
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid file type. Allowed: {', '.join(allowed_types)}",
+        )
+
+    # Validate file size (5MB max)
+    contents = await file.read()
+    if len(contents) > 5 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File size exceeds 5MB limit",
+        )
+
+    # Update user profile with picture
+    user = update_user_profile(
+        current_user,
+        profile_picture=contents,
+        profile_picture_mime_type=file.content_type,
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+
+    return {"message": "Profile picture uploaded successfully"}
+
+
+@router.get("/profile-picture")
+async def get_profile_picture(
+    current_user: Annotated[str, Depends(get_current_user)],
+):
+    """
+    Get the current user's profile picture.
+
+    Returns:
+        Profile picture image
+    """
+    user = get_user(current_user)
+    if not user or not user.profile_picture:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Profile picture not found"
+        )
+
+    return Response(
+        content=bytes(user.profile_picture),
+        media_type=user.profile_picture_mime_type or "image/jpeg",
+    )
+
+
+@router.delete("/profile-picture")
+async def delete_profile_picture(
+    current_user: Annotated[str, Depends(get_current_user)],
+):
+    """
+    Delete the current user's profile picture.
+
+    Returns:
+        Success message
+    """
+    user = update_user_profile(
+        current_user, profile_picture=b"", profile_picture_mime_type=None
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+
+    return {"message": "Profile picture deleted successfully"}

@@ -5,6 +5,7 @@
 	import { authStore } from '$lib/stores/auth';
 	import AppLayout from '$lib/components/AppLayout.svelte';
 	import favicon from '$lib/assets/favicon.svg';
+	import '$lib/styles/design-system.css';
 
 	let { children } = $props();
 
