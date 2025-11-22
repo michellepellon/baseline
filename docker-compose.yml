@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: baseline-health
     ports:
-      - "5000:5000"
+      - "8000:5000"
     volumes:
       # Persist DuckDB database
       - ./data:/app/data

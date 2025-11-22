@@ -64,12 +64,21 @@ class SleepDatabase:
     def _run_migrations(self):
         """Run database migrations for schema updates."""
         try:
-            # Check if profile_picture columns exist
+            # Check which columns exist in users table
             result = self.conn.execute("""
                 SELECT column_name
                 FROM information_schema.columns
                 WHERE table_name = 'users'
-                AND column_name IN ('profile_picture', 'profile_picture_mime_type')
+                AND column_name IN (
+                    'profile_picture',
+                    'profile_picture_mime_type',
+                    'onboarding_completed',
+                    'onboarding_completed_at',
+                    'tour_completed',
+                    'wearable_type',
+                    'sleep_goals',
+                    'preferences'
+                )
             """).fetchall()
 
             existing_columns = [row[0] for row in result]
@@ -81,6 +90,30 @@ class SleepDatabase:
             # Add profile_picture_mime_type column if it doesn't exist
             if 'profile_picture_mime_type' not in existing_columns:
                 self.conn.execute("ALTER TABLE users ADD COLUMN profile_picture_mime_type VARCHAR;")
+
+            # Add onboarding_completed column if it doesn't exist
+            if 'onboarding_completed' not in existing_columns:
+                self.conn.execute("ALTER TABLE users ADD COLUMN onboarding_completed BOOLEAN DEFAULT FALSE;")
+
+            # Add onboarding_completed_at column if it doesn't exist
+            if 'onboarding_completed_at' not in existing_columns:
+                self.conn.execute("ALTER TABLE users ADD COLUMN onboarding_completed_at TIMESTAMP WITH TIME ZONE;")
+
+            # Add tour_completed column if it doesn't exist
+            if 'tour_completed' not in existing_columns:
+                self.conn.execute("ALTER TABLE users ADD COLUMN tour_completed BOOLEAN DEFAULT FALSE;")
+
+            # Add wearable_type column if it doesn't exist
+            if 'wearable_type' not in existing_columns:
+                self.conn.execute("ALTER TABLE users ADD COLUMN wearable_type VARCHAR;")
+
+            # Add sleep_goals column if it doesn't exist
+            if 'sleep_goals' not in existing_columns:
+                self.conn.execute("ALTER TABLE users ADD COLUMN sleep_goals TEXT;")
+
+            # Add preferences column if it doesn't exist
+            if 'preferences' not in existing_columns:
+                self.conn.execute("ALTER TABLE users ADD COLUMN preferences JSON;")
         except Exception:
             # If migration fails, it's likely because the columns already exist
             # or the table doesn't exist yet (will be created by schema.sql)
@@ -429,6 +462,121 @@ class SleepDatabase:
         self.conn.execute(query, params)
 
         return self.get_user(username)
+
+    def get_onboarding_status(self, username: str) -> dict | None:
+        """
+        Get onboarding status for a user.
+
+        Args:
+            username: User's email/username
+
+        Returns:
+            Dictionary with onboarding status or None if user not found
+        """
+        result = self.conn.execute(
+            """
+            SELECT
+                onboarding_completed,
+                onboarding_completed_at,
+                tour_completed,
+                wearable_type,
+                sleep_goals,
+                preferences
+            FROM users
+            WHERE username = ?
+            """,
+            [username],
+        ).fetchone()
+
+        if not result:
+            return None
+
+        # Check if user has any sleep data
+        has_sleep_data = self.conn.execute(
+            "SELECT COUNT(*) FROM sleep_records"
+        ).fetchone()[0] > 0
+
+        return {
+            "is_onboarded": result[0] or False,
+            "onboarded_at": result[1],
+            "has_completed_tour": result[2] or False,
+            "wearable_type": result[3],
+            "sleep_goals": result[4],
+            "preferences": result[5],
+            "has_sleep_data": has_sleep_data,
+        }
+
+    def update_onboarding_completion(
+        self,
+        username: str,
+        onboarding_completed: bool | None = None,
+        tour_completed: bool | None = None,
+        wearable_type: str | None = None,
+        sleep_goals: str | None = None,
+        preferences: str | None = None,
+    ) -> bool:
+        """
+        Update onboarding status for a user.
+
+        Args:
+            username: User's email/username
+            onboarding_completed: Mark onboarding as complete
+            tour_completed: Mark tour as complete
+            wearable_type: Wearable device type (e.g., 'apple_health')
+            sleep_goals: JSON string of sleep goals
+            preferences: JSON string of user preferences
+
+        Returns:
+            True if update successful, False otherwise
+        """
+        updates = []
+        params = []
+
+        if onboarding_completed is not None:
+            updates.append("onboarding_completed = ?")
+            params.append(onboarding_completed)
+            if onboarding_completed:
+                updates.append("onboarding_completed_at = now()")
+
+        if tour_completed is not None:
+            updates.append("tour_completed = ?")
+            params.append(tour_completed)
+
+        if wearable_type is not None:
+            updates.append("wearable_type = ?")
+            params.append(wearable_type)
+
+        if sleep_goals is not None:
+            updates.append("sleep_goals = ?")
+            params.append(sleep_goals)
+
+        if preferences is not None:
+            updates.append("preferences = ?")
+            params.append(preferences)
+
+        if not updates:
+            return False
+
+        updates.append("updated_at = now()")
+        params.append(username)
+
+        query = f"UPDATE users SET {', '.join(updates)} WHERE username = ?"
+
+        try:
+            self.conn.execute(query, params)
+            return True
+        except Exception:
+            return False
+
+    def has_sleep_data(self) -> bool:
+        """
+        Check if database has any sleep records.
+
+        Returns:
+            True if there are sleep records, False otherwise
+        """
+        result = self.conn.execute("SELECT COUNT(*) FROM sleep_records").fetchone()
+        return result[0] > 0 if result else False
 
     def close(self):
         """Close database connection."""

@@ -1,0 +1,109 @@
+/* Import Shepherd.js base styles */
+@import 'shepherd.js/dist/css/shepherd.css';
+
+/* Custom Baseline tour styling */
+.baseline-tour-step {
+	max-width: 400px;
+}
+
+.baseline-tour-step .shepherd-content {
+	border-radius: 0.75rem;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+	padding: 0;
+	overflow: hidden;
+}
+
+.baseline-tour-step .shepherd-text {
+	padding: 1.5rem;
+	color: #374151;
+	font-size: 0.9375rem;
+	line-height: 1.6;
+}
+
+.baseline-tour-step .shepherd-text h3 {
+	margin: 0 0 0.75rem 0;
+	font-size: 1.125rem;
+	font-weight: 600;
+	color: #111827;
+	background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.baseline-tour-step .shepherd-text p {
+	margin: 0;
+}
+
+.baseline-tour-step .shepherd-footer {
+	padding: 1rem 1.5rem;
+	background-color: #f9fafb;
+	border-top: 1px solid #e5e7eb;
+	display: flex;
+	justify-content: space-between;
+	gap: 0.75rem;
+}
+
+.baseline-tour-step .shepherd-button {
+	padding: 0.5rem 1.25rem;
+	border-radius: 0.5rem;
+	font-size: 0.875rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s;
+	border: none;
+}
+
+.baseline-tour-step .shepherd-button:not(.shepherd-button-secondary) {
+	background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+	color: white;
+}
+
+.baseline-tour-step .shepherd-button:not(.shepherd-button-secondary):hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.baseline-tour-step .shepherd-button-secondary {
+	background: white;
+	color: #6b7280;
+	border: 1px solid #d1d5db;
+}
+
+.baseline-tour-step .shepherd-button-secondary:hover {
+	background-color: #f3f4f6;
+}
+
+.baseline-tour-step .shepherd-cancel-icon {
+	position: absolute;
+	top: 0.75rem;
+	right: 0.75rem;
+	width: 1.5rem;
+	height: 1.5rem;
+	border-radius: 0.25rem;
+	background: transparent;
+	border: none;
+	color: #9ca3af;
+	cursor: pointer;
+	transition: all 0.2s;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.baseline-tour-step .shepherd-cancel-icon:hover {
+	background-color: #f3f4f6;
+	color: #374151;
+}
+
+.shepherd-modal-overlay-container {
+	z-index: 9998;
+}
+
+.baseline-tour-step {
+	z-index: 9999;
+}
+
+.shepherd-arrow {
+	z-index: 10000;
+}

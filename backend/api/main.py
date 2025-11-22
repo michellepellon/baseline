@@ -16,7 +16,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from backend.api.routes import auth, ingest, insights, sleep
+from backend.api.routes import auth, ingest, insights, onboarding, sleep
 
 app = FastAPI(
     title="Apple Health Analysis Engine",
@@ -95,6 +95,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(ingest.router)
 app.include_router(insights.router)
+app.include_router(onboarding.router)
 app.include_router(sleep.router)
 
 

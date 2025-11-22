@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { getSleepStats } from '$lib/api/client';
+	import { startTour } from '$lib/tour/tour';
+	import '$lib/tour/tour.css';
 
 	let username = $derived($authStore.username || '');
 	let firstName = $state('');
@@ -257,6 +259,28 @@
 		return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 	}
 
+	async function handleRestartTour() {
+		try {
+			// Reset tour completion status in backend
+			const response = await fetch('/api/onboarding/tour/restart', {
+				method: 'POST',
+				headers: {
+					'Authorization': `Bearer ${$authStore.token}`
+				}
+			});
+
+			if (response.ok) {
+				// Start the tour
+				startTour();
+			} else {
+				message = 'Failed to restart tour';
+			}
+		} catch (error) {
+			message = 'Error restarting tour';
+			console.error('Failed to restart tour:', error);
+		}
+	}
+
 	onMount(loadProfile);
 </script>
 
@@ -357,6 +381,21 @@
 				{loading ? 'Saving...' : 'Save Changes'}
 			</button>
 		</form>
+	</section>
+
+	<!-- Application Tour -->
+	<section class="tour-section">
+		<h2>Application Tour</h2>
+		<p class="tour-description">
+			Take a guided tour of Baseline's features to learn how to make the most of your sleep tracking experience.
+		</p>
+		<button type="button" onclick={handleRestartTour} class="tour-button">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tour-icon">
+				<circle cx="12" cy="12" r="10" />
+				<polygon points="10 8 16 12 10 16 10 8" />
+			</svg>
+			Restart Tour
+		</button>
 	</section>
 </main>
 
@@ -592,6 +631,39 @@
 		border: 1px solid var(--color-success-border);
 	}
 
+	/* Tour Section */
+	.tour-section {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+
+	.tour-description {
+		color: var(--color-text-secondary);
+		font-size: var(--text-sm);
+		line-height: 1.6;
+		margin: 0;
+	}
+
+	.tour-button {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		width: fit-content;
+		background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+		padding: var(--space-3) var(--space-6);
+	}
+
+	.tour-button:hover:not(:disabled) {
+		transform: translateY(-1px);
+		box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+	}
+
+	.tour-icon {
+		width: 1.25rem;
+		height: 1.25rem;
+	}
+
 	/* Responsive */
 	@media (max-width: 768px) {
 		.profile-header {
@@ -601,6 +673,11 @@
 
 		.form-grid {
 			grid-template-columns: 1fr;
+		}
+
+		.tour-button {
+			width: 100%;
+			justify-content: center;
 		}
 	}
 </style>

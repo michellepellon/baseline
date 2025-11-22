@@ -42,7 +42,7 @@
 			const result = await ingestHealthKitData(file);
 			progress = 100;
 			clearInterval(progressInterval);
-			dispatch('upload-success', result);
+			dispatch('success', result);
 		} catch (e) {
 			clearInterval(progressInterval);
 			error = e instanceof Error ? e.message : 'Upload failed';

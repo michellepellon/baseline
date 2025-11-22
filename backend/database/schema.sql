@@ -18,6 +18,15 @@ CREATE TABLE IF NOT EXISTS users (
     last_name VARCHAR,
     profile_picture BLOB,
     profile_picture_mime_type VARCHAR,
+
+    -- Onboarding fields
+    onboarding_completed BOOLEAN DEFAULT FALSE,
+    onboarding_completed_at TIMESTAMP WITH TIME ZONE,
+    tour_completed BOOLEAN DEFAULT FALSE,
+    wearable_type VARCHAR,
+    sleep_goals TEXT,
+    preferences JSON,
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
